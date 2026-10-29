@@ -1,35 +1,34 @@
 #pragma once
 
 #include <stddef.h>
+#include <stdbool.h>
 #include <stdint.h>
 
 #include "esp_err.h"
-#include "fall_model_config.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct {
-    int8_t output_q;
-    float probability;
-    float inference_ms;
-} fall_inference_result_t;
-
-/* Initialize TFLite Micro, validate the embedded model, and run its zero-input sanity test. */
 esp_err_t fall_detector_init(void);
 
-/*
- * Run inference directly from a circular [125, 6] buffer in training units.
- * oldest_index identifies the oldest row; the buffer is read chronologically
- * without creating a second, linear copy of the window.
- */
-esp_err_t fall_detector_predict_circular(
-                                         const float ring[WINDOW_SIZE][NUM_CHANNELS],
-                                         size_t oldest_index,
-                                         fall_inference_result_t *result);
+/* Prepare INT8 model input from a flat [WINDOW_SIZE][NUM_CHANNELS] SI ring.
+ * oldest_index identifies the first row in chronological order. */
+esp_err_t fall_detector_prepare_input(const float *circular_buffer,
+                                      size_t oldest_index);
 
-size_t fall_detector_tensor_arena_used(void);
+/* Invoke the model on the currently prepared INT8 input tensor. */
+esp_err_t fall_detector_invoke(float *p_fall, float *inference_ms);
+
+/* Apply the configured single-window fall threshold. */
+bool fall_detector_is_fall_candidate(float p_fall);
+
+/* Track candidates over the configured temporal window (2-of-3). */
+esp_err_t fall_detector_temporal_update(bool candidate,
+                                        bool *fall_detected,
+                                        uint8_t *fall_votes,
+                                        uint8_t *history_count);
+void fall_detector_temporal_reset(void);
 
 #ifdef __cplusplus
 }

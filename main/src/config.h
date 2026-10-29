@@ -13,21 +13,16 @@
 /* MPU-6050/MPU-6500 dùng địa chỉ 0x68 khi chân AD0 được nối mức thấp. */
 #define MPU6050_I2C_ADDRESS      0x68
 
-/* Lấy mẫu MPU6050 ở 50 Hz; chia sẻ hàng đợi để không chặn acquisition khi infer. */
+/* Tần số đọc cảm biến và chu kỳ in dữ liệu ra Serial. */
 #define SENSOR_SAMPLE_RATE_HZ        50
 #define SENSOR_SAMPLE_PERIOD_MS      (1000 / SENSOR_SAMPLE_RATE_HZ)
-#define SENSOR_SAMPLE_QUEUE_LENGTH   128
+#define SENSOR_LOG_INTERVAL_MS       1000
+#define SENSOR_RETRY_INTERVAL_MS     500
 #define SENSOR_TASK_STACK_SIZE       4096
-#define SENSOR_TASK_PRIORITY         8
-#define INFERENCE_TASK_STACK_SIZE    12288
-#define INFERENCE_TASK_PRIORITY      5
-
-/* Print one SI-unit sample per second from the low-priority worker; 0 keeps logs quiet. */
-#define SENSOR_DEBUG_ENABLED         0
-#define SENSOR_DEBUG_INTERVAL_MS     1000
-
-/* Rule-only simulation. Set to 1 to skip MPU/TFLM and exercise 2-of-3 logic. */
-#define FALL_SIMULATION_TEST_ENABLED 0
+#define SENSOR_TASK_PRIORITY         5
+#define SENSOR_SAMPLE_QUEUE_LENGTH   16
+#define INFERENCE_TASK_STACK_SIZE    8192
+#define INFERENCE_TASK_PRIORITY      4
 
 /* Cấu hình I2C được định nghĩa một lần trong config.c. */
 extern const i2c_config_t app_i2c_config;
